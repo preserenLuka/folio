@@ -6,7 +6,14 @@ import { Logo } from "./icons";
 const SPINES = [["#b4532a", 88], ["#2f4a3f", 104], ["#c8962c", 76], ["#3b2f5c", 112], ["#8c3b4f", 92], ["#24384a", 100], ["#6b7a45", 80]] as const;
 
 export function AuthForm({ mode, action }: { mode: "login" | "register"; action: (s: unknown, f: FormData) => Promise<{ error?: string } | null> }) {
-  const [state, run, pending] = useActionState(action, null as { error?: string } | null);
+  // After a deploy, a tab opened earlier references Server Actions that no longer exist. Reload to pick up the new build.
+  const safe: typeof action = async (s, f) => {
+    try { return await action(s, f); } catch (e) {
+      if (/was not found|UnrecognizedAction/i.test(String(e))) { window.location.reload(); return { error: "Folio was updated. Reloading…" }; }
+      throw e;
+    }
+  };
+  const [state, run, pending] = useActionState(safe, null as { error?: string } | null);
   const login = mode === "login";
   return (
     <main className="page-enter mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-7 px-6 py-10">

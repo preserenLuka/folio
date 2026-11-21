@@ -76,7 +76,7 @@ Next.js 15 + TS + Tailwind 4, Postgres/Prisma, email+password auth, 5-tab layout
 - **WP-ADD (v1):** Open Library + Google Books search, manual add. *Missing: ISBN/barcode scan, spine-photo scan, bulk import.*
 - **WP-VALUE (v1):** per-book price entry, selection list, count-up animation with Skip, itemised receipt with PAID seal. *Missing: automatic price lookup, share image.*
 - **WP-STATS / WP-GOALS / WP-HOME / WP-BOOKS (v1):** stats cards, books/month chart, top authors/genres, streak; goals (books/pages/minutes per year/month/week) with rings; Home with currently-reading, streak, goals, recent; Books tab with search/filter/sort.
-- **WP-PROFILE / WP-IMPORT (partial):** currency setting, JSON export.
+- **WP-PROFILE / WP-IMPORT (v1):** currency setting, JSON export, CSV/Goodreads import. **WP-ADD** also has browser barcode scan (BarcodeDetector). **WP-PWA (v1):** manifest + icon.
 
 **Still open:** WP-VISION (spine/barcode recognition), WP-UPLOADS (photos, custom covers), WP-SHARE (image export of receipt/recap, public links), WP-IMPORT (CSV/Goodreads), WP-PWA, WP-COMMUNITY, WP-QA, plus the "missing" items above. The package table below still applies; treat done items as "polish/extend".
 

@@ -3,13 +3,14 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { STATUS_LABEL } from "@/lib/status";
 
-export default async function Books({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+export default async function Books({ searchParams }: { searchParams: Promise<{ status?: string; q?: string; sort?: string }> }) {
   const u = await requireUser();
-  const { status } = await searchParams;
+  const { status, q, sort } = await searchParams;
   const valid = status && status in STATUS_LABEL ? (status as keyof typeof STATUS_LABEL) : undefined;
-  const items = await db.userBook.findMany({ where: { userId: u.id, ...(valid ? { status: valid } : {}) }, include: { book: true }, orderBy: { updatedAt: "desc" } });
+  const items = await db.userBook.findMany({ where: { userId: u.id, ...(valid ? { status: valid } : {}), ...(q ? { book: { OR: [{ title: { contains: q, mode: "insensitive" as const } }, { authors: { has: q } }] } } : {}) }, include: { book: true }, orderBy: sort === "rating" ? { rating: { sort: "desc", nulls: "last" } } : sort === "title" ? { book: { title: "asc" } } : { updatedAt: "desc" } });
   return (
     <div>
+      <form className="mb-3 flex gap-2"><input name="q" defaultValue={q} placeholder="Search your books" className="flex-1 rounded-lg border border-wood/30 bg-white/70 px-3 py-2" />{valid && <input type="hidden" name="status" value={valid} />}<select name="sort" defaultValue={sort ?? ""} className="rounded-lg border border-wood/30 bg-white/70 px-2"><option value="">Recent</option><option value="title">Title</option><option value="rating">Rating</option></select><button className="rounded-lg bg-accent px-3 text-white">Go</button></form>
       <div className="mb-3 flex flex-wrap gap-2 text-sm">
         <Link href="/books" className={`rounded-full px-3 py-1 ${!valid ? "bg-accent text-white" : "bg-white/60"}`}>All</Link>
         {(Object.keys(STATUS_LABEL) as (keyof typeof STATUS_LABEL)[]).map((s) => (

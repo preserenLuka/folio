@@ -67,8 +67,18 @@ Community-contributed book assets (sprayed edges, scans) [V]; public notes/revie
 ## Data model (see `prisma/schema.prisma`)
 `User` → `Library` (MANUAL | SMART with `smartRule`, `theme`, `isDefault`, `position`) → `LibraryEntry` (shelf placement) → `UserBook` (status, progress, rating, dates, price/paid/currency, spine/edge customisation, favourite) → `Book` (shared catalog: Open Library / Google Books / manual). `UserBook` also owns `ReadingSession`, `Note` (NOTE/QUOTE/REVIEW), `BookPhoto`, `UserBookTag`. `User` owns `Tag` and `Goal`.
 
-## What is already built (foundation, this PR)
-Next.js 15 App Router + TS + Tailwind 4, Postgres/Prisma, email+password auth (bcrypt + signed JWT cookie; no external provider), 5-tab layout (mobile bottom bar / desktop top nav), book search (`/api/books/search`, Open Library + Google Books merged & de-duplicated), add-to-collection server action, Books list with status filter, book detail with status change & remove, **basic** spine shelf on Library (default library + the auto-filled TBR library data), simple Home/Stats/Profile pages. Registration seeds "My library" and a smart "TBR" library.
+## What is already built (local commits; not yet pushed)
+Next.js 15 + TS + Tailwind 4, Postgres/Prisma, email+password auth, 5-tab layout, and these packages **implemented as a first pass**:
+- **WP-SHELF (v1):** themed shelves (5 looks), spine width from page count, sorting (added/newest/title/author/colour), favourites. *Missing: drag-to-arrange, cover-derived spine colours, props/seasonal scenes.*
+- **WP-LIBRARIES (done):** multiple libraries, create/rename/delete/reorder/default, "Fills itself" smart libraries with status rules, theme ("Look") picker, per-book shelf membership, share-as-SVG-image endpoint.
+- **WP-BOOKVIEW (v1):** CSS-3D book (drag to spin; front/back-blurb/spine/page-edge; sprayed-edge colours), edit panel, status chips, favourite, half-star rating.
+- **WP-TRACKING (v1):** progress %, reading sessions, notes/quotes/reviews, dates, format, owned.
+- **WP-ADD (v1):** Open Library + Google Books search, manual add. *Missing: ISBN/barcode scan, spine-photo scan, bulk import.*
+- **WP-VALUE (v1):** per-book price entry, selection list, count-up animation with Skip, itemised receipt with PAID seal. *Missing: automatic price lookup, share image.*
+- **WP-STATS / WP-GOALS / WP-HOME / WP-BOOKS (v1):** stats cards, books/month chart, top authors/genres, streak; goals (books/pages/minutes per year/month/week) with rings; Home with currently-reading, streak, goals, recent; Books tab with search/filter/sort.
+- **WP-PROFILE / WP-IMPORT (partial):** currency setting, JSON export.
+
+**Still open:** WP-VISION (spine/barcode recognition), WP-UPLOADS (photos, custom covers), WP-SHARE (image export of receipt/recap, public links), WP-IMPORT (CSV/Goodreads), WP-PWA, WP-COMMUNITY, WP-QA, plus the "missing" items above. The package table below still applies; treat done items as "polish/extend".
 
 ## Work packages (parallel threads)
 

@@ -1,17 +1,21 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { addManualBook } from "@/lib/actions-tracking";
+import { PageHeader } from "@/components/ui";
 
+export const metadata = { title: "Add manually" };
 export default async function Add() {
   await requireUser();
-  const input = "w-full rounded-lg border border-wood/30 bg-white/70 px-3 py-2";
   return (
-    <div className="mx-auto max-w-md px-4 py-4"><Link href="/search" className="text-sm underline">← Search instead</Link>
-      <h1 className="my-3 font-serif text-2xl">Add manually</h1>
-      <form className="space-y-3" action={async (fd) => { "use server"; const id = await addManualBook(fd); if (id) redirect(`/books/${id}`); }}>
-        <input name="title" placeholder="Title" required className={input} /><input name="author" placeholder="Author(s), comma separated" className={input} />
-        <input name="pages" type="number" placeholder="Pages" className={input} /><input name="coverUrl" type="url" placeholder="Cover image URL (optional)" className={input} />
-        <button className="w-full rounded-lg bg-accent py-2 text-white">Add to library</button></form></div>
+    <div className="page-enter mx-auto max-w-md px-5 pb-16 pt-[max(1rem,env(safe-area-inset-top))]">
+      <PageHeader title="Add manually" back={{ href: "/search", label: "Search instead" }} />
+      <form className="card-flat space-y-4 p-5" action={async (fd) => { "use server"; const id = await addManualBook(fd); if (id) redirect(`/books/${id}`); }}>
+        <div><label className="label" htmlFor="t">Title</label><input id="t" name="title" required className="field" /></div>
+        <div><label className="label" htmlFor="a">Author(s)</label><input id="a" name="author" placeholder="Comma separated" className="field" /></div>
+        <div><label className="label" htmlFor="p">Pages</label><input id="p" name="pages" type="number" inputMode="numeric" className="field" /></div>
+        <div><label className="label" htmlFor="c">Cover image URL <span className="font-normal">(optional)</span></label><input id="c" name="coverUrl" type="url" className="field" /></div>
+        <button className="btn btn-primary w-full !min-h-12">Add to library</button>
+      </form>
+    </div>
   );
 }

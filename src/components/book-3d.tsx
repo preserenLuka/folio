@@ -19,7 +19,7 @@ export function Book3D({ title, author, coverUrl, blurb, pages, color, edge }: P
   const edgeBg = edge && EDGES[edge] ? EDGES[edge] : paper;
   const face = "absolute [backface-visibility:hidden]";
   return (
-    <div className="flex flex-col items-center gap-2 py-12 select-none" style={{ perspective: 1100 }}>
+    <div className="flex flex-col items-center gap-2 pb-6 pt-8 select-none" style={{ perspective: 1100 }}>
       <div
         className="relative cursor-grab touch-none active:cursor-grabbing"
         style={{ width: W, height: H, transformStyle: "preserve-3d", transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg)`, transition: drag.current ? "none" : "transform .5s cubic-bezier(.2,.8,.2,1)" }}
@@ -45,9 +45,9 @@ export function Book3D({ title, author, coverUrl, blurb, pages, color, edge }: P
         <div className={face} style={{ width: W, height: depth, top: 0, transform: `rotateX(90deg) translateZ(${depth / 2}px)`, marginTop: -depth / 2, background: edgeBg }} />
         <div className={face} style={{ width: W, height: depth, bottom: 0, transform: `rotateX(-90deg) translateZ(${depth / 2}px)`, marginBottom: -depth / 2, background: edgeBg }} />
       </div>
-      <div className="mt-4 flex gap-2 text-xs">
+      <div className="mt-6 flex gap-2 text-xs">
         {[["Front", { x: -8, y: -28 }], ["Back", { x: -8, y: 152 }], ["Spine", { x: 0, y: 90 }], ["Edge", { x: 0, y: -90 }]].map(([l, r]) => (
-          <button key={String(l)} onClick={() => setRot(r as typeof rot)} className="rounded-full bg-white/70 px-3 py-1">{String(l)}</button>))}
+          <button key={String(l)} onClick={() => setRot(r as typeof rot)} className="chip !py-1 text-xs">{String(l)}</button>))}
       </div>
     </div>
   );

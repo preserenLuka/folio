@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ReadingStatus {
+  WANT_TO_READ   // TBR
+  READING
+  READ
+  PAUSED
+  DNF
+}
+
+enum BookFormat {
+  HARDCOVER
+  PAPERBACK
+  EBOOK
+  AUDIOBOOK
+  OTHER
+}
+
+enum LibraryKind {
+  MANUAL   // user places books
+  SMART    // "fills itself" from smartRule
+}
+
+enum NoteKind {
+  NOTE
+  QUOTE
+  REVIEW
+}
+
+enum GoalType {
+  BOOKS
+  PAGES
+  MINUTES
+}
+
+enum GoalPeriod {
+  YEAR
+  MONTH
+  WEEK
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  settings     Json     @default("{}") // currency, theme, units, defaultLibraryId...
+
+  libraries    Library[]
+  userBooks    UserBook[]
+  goals        Goal[]
+  tags         Tag[]
+}
+
+/// Shared catalog record (from Open Library / Google Books / manual entry).
+model Book {
+  id            String   @id @default(cuid())
+  source        String   // "openlibrary" | "google" | "manual"
+  externalId    String?
+  isbn10        String?
+  isbn13        String?
+  title         String
+  subtitle      String?
+  authors       String[]
+  description   String?
+  publisher     String?
+  publishedYear Int?
+  pageCount     Int?
+  language      String?
+  categories    String[]
+  coverUrl      String?
+  createdAt     DateTime @default(now())
+
+  userBooks UserBook[]
+
+  @@unique([source, externalId])
+  @@index([isbn13])
+  @@index([title])
+}
+
+/// A book in one user's collection (their copy + reading state).
+model UserBook {
+  id          String        @id @default(cuid())
+  userId      String
+  bookId      String
+  status      ReadingStatus @default(WANT_TO_READ)
+  rating      Float?        // 0.5 steps, 0-5
+  currentPage Int           @default(0)
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  format      BookFormat?
+  owned       Boolean       @default(false)
+  price       Decimal?      @db.Decimal(10, 2)
+  priceCurrency String?
+  pricePaid   Decimal?      @db.Decimal(10, 2)
+  // custom look of the book on the shelf
+  spineColor  String?
+  spineTextColor String?
+  spineHeight Int?
+  spineWidth  Int?
+  sprayedEdges String?      // hex or pattern id, null = none
+  customCoverUrl String?
+  isFavorite  Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book     Book           @relation(fields: [bookId], references: [id])
+  entries  LibraryEntry[]
+  sessions ReadingSession[]
+  notes    Note[]
+  photos   BookPhoto[]
+  tags     UserBookTag[]
+
+  @@unique([userId, bookId])
+  @@index([userId, status])
+}
+
+model Library {
+  id        String      @id @default(cuid())
+  userId    String
+  name      String
+  kind      LibraryKind @default(MANUAL)
+  smartRule Json?       // e.g. {"status":["WANT_TO_READ"]} for the TBR library
+  theme     String      @default("classic") // visual "look" of the shelf
+  isDefault Boolean     @default(false)
+  position  Int         @default(0)
+  createdAt DateTime    @default(now())
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries LibraryEntry[]
+
+  @@index([userId])
+}
+
+/// Placement of a book inside a manual library/shelf.
+model LibraryEntry {
+  id         String   @id @default(cuid())
+  libraryId  String
+  userBookId String
+  shelfIndex Int      @default(0)
+  position   Int      @default(0)
+  addedAt    DateTime @default(now())
+
+  library  Library  @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+  userBook UserBook @relation(fields: [userBookId], references: [id], onDelete: Cascade)
+
+  @@unique([libraryId, userBookId])
+}
+
+model ReadingSession {
+  id         String   @id @default(cuid())
+  userBookId String
+  startedAt  DateTime
+  endedAt    DateTime?
+  minutes    Int      @default(0)
+  startPage  Int?
+  endPage    Int?
+  pagesRead  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  userBook UserBook @relation(fields: [userBookId], references: [id], onDelete: Cascade)
+
+  @@index([userBookId, startedAt])
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  userBookId String
+  kind       NoteKind @default(NOTE)
+  body       String
+  page       Int?
+  isPublic   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userBook UserBook @relation(fields: [userBookId], references: [id], onDelete: Cascade)
+}
+
+model BookPhoto {
+  id         String   @id @default(cuid())
+  userBookId String
+  url        String
+  caption    String?
+  createdAt  DateTime @default(now())
+
+  userBook UserBook @relation(fields: [userBookId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id     String @id @default(cuid())
+  userId String
+  name   String
+  color  String?
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  books UserBookTag[]
+
+  @@unique([userId, name])
+}
+
+model UserBookTag {
+  userBookId String
+  tagId      String
+
+  userBook UserBook @relation(fields: [userBookId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([userBookId, tagId])
+}
+
+model Goal {
+  id        String     @id @default(cuid())
+  userId    String
+  type      GoalType
+  period    GoalPeriod @default(YEAR)
+  target    Int
+  year      Int
+  createdAt DateTime   @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, period, year])
+}

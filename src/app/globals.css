@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@theme {
+  --color-paper: #f6f1e7;
+  --color-ink: #2b2620;
+  --color-accent: #b4532a;
+  --color-wood: #5a3d2b;
+  --font-serif: Georgia, "Times New Roman", serif;
+}
+body { background: var(--color-paper); color: var(--color-ink); }

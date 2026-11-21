@@ -30,8 +30,15 @@ export async function computeStats(userId: string, year = new Date().getFullYear
   let streak = 0; const d = new Date();
   if (!days.has(d.toISOString().slice(0, 10))) d.setDate(d.getDate() - 1);
   while (days.has(d.toISOString().slice(0, 10))) { streak++; d.setDate(d.getDate() - 1); }
+  const mins = new Map<string, number>();
+  for (const x of sessions) { const k = x.startedAt.toISOString().slice(0, 10); mins.set(k, (mins.get(k) ?? 0) + x.minutes); }
+  const dayKey = (n: number) => { const t = new Date(); t.setUTCDate(t.getUTCDate() - n); return t.toISOString().slice(0, 10); };
+  const week = Array.from({ length: 7 }, (_, i) => { const k = dayKey(6 - i); return { label: "SMTWTFS"[new Date(k + "T00:00:00Z").getUTCDay()], active: days.has(k), today: i === 6 }; });
+  // 12 weeks of activity, Sunday-aligned columns (null = padding before the first day).
+  const first = new Date(dayKey(12 * 7 - 1) + "T00:00:00Z").getUTCDay();
+  const activity: ({ date: string; minutes: number } | null)[] = [...Array<null>(first).fill(null), ...Array.from({ length: 12 * 7 }, (_, i) => { const k = dayKey(12 * 7 - 1 - i); return { date: k, minutes: mins.get(k) ?? 0 }; })];
   return {
-    total: all, readTotal: read.length, readThisYear: thisYear.length,
+    week, activity, total: all, readTotal: read.length, readThisYear: thisYear.length,
     pagesThisYear: thisYear.reduce((s, r) => s + (r.book.pageCount ?? 0), 0),
     minutes: sessions.reduce((s, x) => s + x.minutes, 0), streak, perMonth,
     avgRating: rated.length ? rated.reduce((s, r) => s + (r.rating ?? 0), 0) / rated.length : null,
